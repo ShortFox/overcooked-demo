@@ -94,8 +94,36 @@ function startGame(endOfGameCallback) {
 
     $("#overcooked").empty();
     getOvercookedPolicy(players[0], layout_name, 0).then(function(npc_policy_zero) {
+	let [N, S, E, W, I] = [NORTH, SOUTH, EAST, WEST, INTERACT];
         getOvercookedPolicy(players[1], layout_name, 1).then(function(npc_policy_one) {
-            let player_index = null; 
+	    function make_policy_from_actions(actions) {
+		let index = -1;
+		return function (s) {
+		    if (index < actions.length - 1) { index += 1; }
+		    return actions[index];
+		}
+	    };
+	    // All of these policies are meant for Counter Circuit
+	    let smart_alice_actions = [E, E, S, I, N, I, S, I, N, I, S, I, N, I, E, S, I, N, I, S, I, N, I, S, I, N, I, STAY];
+	    let smart_you_with_smart_alice_actions = [N, N, W, W, W, S, I, N, I, S, I, N, I, S, I, N, I, E, S, I, N, I, S, I, N, I, S, I, N, I, STAY];
+	    let regular_alice_actions = [E, E, S, I, W, W, N, N, E, E, N, I, W, W, S, S, E, E, S, I, W, W, N, N, E, E, N, I, W, W, S, S, E, E, S, I, W, W, N, N, E, E, N, I, STAY];
+	    let smart_you_with_regular_alice_actions = [N, N, W, W, S, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, W, S, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, STAY, E, E, E, S, S, W, W, S, I, E, E, N, N, W, W, N, I, E, E, S, S, W, W, S, I, E, E, N, N, W, W, N, I, E, E, S, S, W, W, S, I, E, E, N, N, W, W, N, I, STAY];
+	    let bob_actions = [W, W, S, I, E, E, N, N, W, W, N, I, E, E, S, S, W, W, S, I, E, E, N, N, W, W, N, I, E, E, S, S, W, W, S, I, E, E, N, N, W, W, N, I, STAY];
+	    let charlie_actions = regular_alice_actions;
+
+	    // Alice and you coordinate on the best strategy
+	    npc_policy_zero = make_policy_from_actions(smart_you_with_smart_alice_actions);
+	    npc_policy_one = make_policy_from_actions(smart_alice_actions);
+
+	    // You try the best strategy, Alice stubbornly sticks to the suboptimal strategy
+	    // npc_policy_zero = make_policy_from_actions(smart_you_with_regular_alice_actions);
+	    // npc_policy_one = make_policy_from_actions(regular_alice_actions);
+
+	    // Bob and Charlie execute the suboptimal strategy
+	    // npc_policy_zero = make_policy_from_actions(bob_actions);
+	    // npc_policy_one = make_policy_from_actions(charlie_actions);
+
+	    let player_index = null; 
             let npc_policies = {0: npc_policy_zero, 1: npc_policy_one}; 
             if (npc_policies[0] == null) {
                 player_index = 0; 
